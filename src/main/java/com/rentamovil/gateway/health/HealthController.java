@@ -4,6 +4,10 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -18,8 +22,12 @@ import org.springframework.web.client.RestClient;
 @RestController
 public class HealthController {
 
+    private static final long MAX_WAIT_SECONDS = 3;
+
     private final Map<String, String> services = new LinkedHashMap<>();
     private final RestClient restClient;
+    // Hilos virtuales (Java 21): baratos, uno por servicio en cada chequeo
+    private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
 
     public HealthController(@Value("${app.gateway.services.iam}") String iam,
                             @Value("${app.gateway.services.fleet-maintenance}") String fleet,
@@ -32,17 +40,30 @@ public class HealthController {
         services.put("payment-billing", payment);
         services.put("telemetry-gps", telemetry);
 
-        //Si un servicio no contesta en 2 segundos se marca como caído; el /health no se queda colgado
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(Duration.ofSeconds(2));
         requestFactory.setReadTimeout(Duration.ofSeconds(2));
         this.restClient = RestClient.builder().requestFactory(requestFactory).build();
     }
 
+    // Solo dice "el gateway está vivo", sin preguntar a nadie. Es el que usa el HEALTHCHECK de Docker:
+    // que un servicio de atrás esté caído no significa que el gateway esté enfermo.
+    @GetMapping("/health/live")
+    public Map<String, String> live() {
+        return Map.of("status", "ok");
+    }
+
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
+        //Se pregunta a todos al mismo tiempo: tarda lo del más lento, no la suma de todos.
+        //Dentro de Docker averiguar que un servicio NO existe puede tardar varios segundos.
+        Map<String, CompletableFuture<String>> checks = new LinkedHashMap<>();
+        services.forEach((name, url) -> checks.put(name, CompletableFuture
+                .supplyAsync(() -> check(url), executor)
+                .completeOnTimeout("down", MAX_WAIT_SECONDS, TimeUnit.SECONDS)));
+
         Map<String, String> upstreams = new LinkedHashMap<>();
-        services.forEach((name, url) -> upstreams.put(name, check(url)));
+        checks.forEach((name, future) -> upstreams.put(name, future.join()));
 
         boolean iamUp = "ok".equals(upstreams.get("iam"));
         boolean allUp = upstreams.values().stream().allMatch("ok"::equals);

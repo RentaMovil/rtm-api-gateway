@@ -57,7 +57,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         //El preflight de CORS y el /health no cuentan
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod()) || "/health".equals(path)) {
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod()) || path.equals("/health") || path.startsWith("/health/")) {
             chain.doFilter(request, response);
             return;
         }

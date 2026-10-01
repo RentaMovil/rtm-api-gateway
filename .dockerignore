@@ -1,0 +1,11 @@
+# Nunca entran a la imagen: secretos, builds locales ni archivos del IDE
+.env
+target/
+bin/
+.git/
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
