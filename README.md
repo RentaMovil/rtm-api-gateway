@@ -95,6 +95,21 @@ curl -X POST http://localhost:8080/auth/login -H "Content-Type: application/json
   -d '{"identifier":"mgarcia","password":"SecurePass123!"}'
 ```
 
+### Con Docker
+
+Orden: `rtm-iam-db` → `rtm-iam` → este repo, cada uno con `docker compose up -d` (los tres
+comparten la red de Docker `rentamovil`). En este repo:
+
+```bash
+docker compose up -d --build
+```
+
+- Contenedor `rentamovil-api-gateway`, puerto 8080.
+- Dentro de Docker los servicios no están en `localhost`: el compose ya apunta a sus nombres en
+  la red (`http://iam:3001`, `http://fleet-maintenance:3002`, …). **Cada servicio nuevo debe usar
+  ese alias en su propio `docker-compose.yml`** (ej. fleet: `aliases: [fleet-maintenance]`).
+- No correr a la vez `mvn spring-boot:run` y el contenedor: los dos usan el puerto 8080.
+
 ## Ramas
 
 `feat/`, `fix/`, `chore/` → PR a `develop` (Squash and Merge). Ver

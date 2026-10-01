@@ -1,0 +1,26 @@
+# API Gateway en su propio contenedor, en la red compartida "rentamovil".
+# Dentro de Docker cada servicio se encuentra por su nombre en la red (iam, fleet-maintenance...),
+# no por localhost. Los servicios que todavía no existan aparecen como "down" en /health.
+services:
+  api-gateway:
+    build: .
+    container_name: rentamovil-api-gateway
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      IAM_URL: http://iam:3001
+      FLEET_URL: http://fleet-maintenance:3002
+      BOOKING_URL: http://booking-reservation:3003
+      PAYMENT_URL: http://payment-billing:3004
+      TELEMETRY_URL: http://telemetry-gps:3005
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    networks:
+      rentamovil:
+        aliases: [api-gateway]
+    restart: unless-stopped
+
+networks:
+  rentamovil:
+    external: true
