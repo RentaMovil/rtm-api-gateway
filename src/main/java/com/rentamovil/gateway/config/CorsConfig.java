@@ -23,7 +23,7 @@ public class CorsConfig {
         config.setAllowedOrigins(Arrays.stream(allowedOrigins.split(",")).map(String::trim).toList());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Correlation-Id"));
-        config.setExposedHeaders(List.of("X-Correlation-Id"));
+        config.setExposedHeaders(List.of("X-Correlation-Id", "Retry-After", "X-RateLimit-Limit", "X-RateLimit-Remaining"));
         // Necesario si más adelante el refresh token viaja en una cookie httpOnly (ADR-005)
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
