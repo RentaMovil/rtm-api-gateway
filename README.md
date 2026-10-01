@@ -39,8 +39,30 @@ Las rutas están en `src/main/resources/application.properties`.
 - **`GET /health`:** estado del gateway y de cada servicio (`ok` / `degraded` / `down`). Responde
   503 solo si `iam` está caído (sin iam nadie puede iniciar sesión).
 
-**Todavía no:** verificación del JWT (`/jwks`) + headers `X-User-Id` / `X-User-Role`, y rate
-limiting. Van en las siguientes ramas.
+## Verificación del JWT
+
+`JwtAuthenticationFilter` + `JwtVerifier` verifican el access token (firma RS256 con la clave
+pública de iam y vencimiento) y le pasan al servicio de atrás:
+
+- `X-User-Id`: el `user_id` (claim `sub`)
+- `X-User-Role`: `CLIENT`, `ADMIN` o `SUPER_ADMIN`
+
+| Caso | Qué hace el gateway |
+|---|---|
+| Ruta pública de iam (`/auth/login`, `/auth/register`, `/auth/refresh`, `/auth/jwks`, `/auth/password/**`) o `/health` | No verifica nada (para renovar se manda el token **ya vencido**) |
+| Trae token válido | Reenvía con `X-User-Id` y `X-User-Role` |
+| Trae token inválido, alterado o vencido | **401** `INVALID_TOKEN`, no reenvía |
+| No trae token | Reenvía **sin** `X-User-*`: el servicio decide si ese endpoint es público |
+| Trae `X-User-*` desde afuera | **Se borran siempre**: solo el gateway los puede poner |
+
+Las claves se descargan de `iam /jwks` y quedan en caché: no se llama a iam en cada petición, y si
+iam cambia de clave se vuelven a pedir solas.
+
+**Importante para cada servicio:** `X-User-*` es un atajo, no la fuente de verdad. Cada servicio
+**vuelve a verificar el token** por su cuenta antes de autorizar una operación
+(`01-api-gateway/decisions.md`).
+
+**Todavía no:** rate limiting. Va en la siguiente rama.
 
 ## Uso local
 
