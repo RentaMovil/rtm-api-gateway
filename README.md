@@ -62,7 +62,21 @@ iam cambia de clave se vuelven a pedir solas.
 **vuelve a verificar el token** por su cuenta antes de autorizar una operación
 (`01-api-gateway/decisions.md`).
 
-**Todavía no:** rate limiting. Va en la siguiente rama.
+## Rate limiting
+
+| Rutas | Límite (por defecto) | Se cuenta por |
+|---|---|---|
+| `/auth/login`, `/auth/register`, `/auth/password/**` | 10 cada 5 min | IP |
+| Todo lo demás | 100 por minuto | `X-User-Id` si hay sesión, si no IP |
+| `/health` y preflight `OPTIONS` | sin límite | — |
+
+Al pasarse responde **429** `RATE_LIMITED` con `Retry-After` (segundos que faltan). Cada respuesta
+trae `X-RateLimit-Limit` y `X-RateLimit-Remaining`. Los límites se cambian en `.env`
+(`RATE_LIMIT_*`).
+
+Los contadores están **en memoria** (`InMemoryRateLimiter`): se reinician si se reinicia el
+gateway y no se comparten entre varios gateways. Para eso la doc pide Redis: se haría otra
+implementación de la interfaz `RateLimiter` sin tocar el filtro.
 
 ## Uso local
 
