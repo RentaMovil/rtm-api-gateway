@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 // de error estándar, en vez de un 500 genérico (el cliente sabe que es temporal y puede reintentar).
 @Slf4j
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE + 2)
+@Order(Ordered.HIGHEST_PRECEDENCE + 3)
 public class UpstreamErrorFilter extends OncePerRequestFilter {
 
     @Override

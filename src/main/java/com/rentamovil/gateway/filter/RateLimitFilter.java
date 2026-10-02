@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 // Va después del filtro del JWT para saber quién es el usuario.
 @Slf4j
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE + 4)
+@Order(Ordered.HIGHEST_PRECEDENCE + 5)
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final List<String> SENSITIVE_PATHS = List.of("/auth/login", "/auth/register", "/auth/password/**");
