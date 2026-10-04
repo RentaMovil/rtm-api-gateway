@@ -21,7 +21,7 @@ Documentación: `rtm-docs/09-microservices/services/01-api-gateway/` y
 | `/auth/**` | `iam`, **quitando `/auth`** | `/auth/login` → iam `/login` · `/auth/password/forgot` → iam `/password/forgot` · `/auth/jwks` → iam `/jwks` |
 | `/users/**` | `iam`, igual | `/users/me` → iam `/users/me` |
 | `/vehicles/**`, `/branches/**` | `fleet-maintenance` (:3002) | |
-| `/reservations/**`, `/rentals/**`, `/notifications/**` | `booking-reservation` (:3003) | |
+| `/reservations/**`, `/rentals/**`, `/notifications/**`, `/insurance-plans/**`, `/admin/reservations/**`, `/admin/rentals/**`, `/admin/insurance-plans/**` | `booking-reservation` (:3003) | |
 | `/payments/**`, `/invoices/**`, `/bank-accounts/**` | `payment-billing` (:3004) | |
 | `/tracking/**` | `telemetry-gps` (:3005) | |
 
