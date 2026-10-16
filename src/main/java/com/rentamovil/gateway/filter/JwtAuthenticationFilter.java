@@ -45,7 +45,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/auth/register",
             "/auth/refresh",
             "/auth/jwks",
-            "/auth/password/**");
+            "/auth/password/**",
+            "/auth/email/**");
 
     private final JwtVerifier jwtVerifier;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
