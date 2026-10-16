@@ -30,7 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 @Order(Ordered.HIGHEST_PRECEDENCE + 5)
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final List<String> SENSITIVE_PATHS = List.of("/auth/login", "/auth/register", "/auth/password/**");
+    private static final List<String> SENSITIVE_PATHS = List.of(
+            "/auth/login", "/auth/register", "/auth/password/**", "/auth/email/**");
 
     private final RateLimiter rateLimiter;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
