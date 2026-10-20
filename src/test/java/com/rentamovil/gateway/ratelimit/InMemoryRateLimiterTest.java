@@ -15,7 +15,7 @@ class InMemoryRateLimiterTest {
     private final InMemoryRateLimiter rateLimiter = new InMemoryRateLimiter(clock);
 
     @Test
-    void dejaPasarHastaElLimiteYDespuesBloquea() {
+    void allowsUpToTheLimitThenBlocks() {
         for (int i = 1; i <= 10; i++) {
             assertThat(rateLimiter.tryConsume("ip:1", 10, Duration.ofMinutes(5)).allowed()).isTrue();
         }
@@ -27,7 +27,7 @@ class InMemoryRateLimiterTest {
     }
 
     @Test
-    void alTerminarLaVentanaElContadorSeReinicia() {
+    void theCounterResetsWhenTheWindowEnds() {
         for (int i = 0; i < 11; i++) {
             rateLimiter.tryConsume("ip:1", 10, Duration.ofMinutes(5));
         }
@@ -38,7 +38,7 @@ class InMemoryRateLimiterTest {
     }
 
     @Test
-    void cadaClaveTieneSuPropioContador() {
+    void eachKeyHasItsOwnCounter() {
         for (int i = 0; i < 11; i++) {
             rateLimiter.tryConsume("ip:1", 10, Duration.ofMinutes(5));
         }
@@ -47,7 +47,7 @@ class InMemoryRateLimiterTest {
     }
 
     @Test
-    void laLimpiezaBorraLasVentanasVencidas() {
+    void cleanupRemovesExpiredWindows() {
         rateLimiter.tryConsume("ip:1", 10, Duration.ofMinutes(1));
         clock.advance(Duration.ofMinutes(2));
 
@@ -56,7 +56,7 @@ class InMemoryRateLimiterTest {
         assertThat(rateLimiter.trackedKeys()).isZero();
     }
 
-    // Reloj que se puede adelantar a mano para no esperar 5 minutos de verdad
+    // A clock that can be advanced by hand so the test doesn't wait 5 real minutes
     private static class MutableClock extends Clock {
         private Instant now;
 
