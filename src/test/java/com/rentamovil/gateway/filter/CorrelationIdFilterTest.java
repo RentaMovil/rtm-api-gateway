@@ -12,7 +12,7 @@ class CorrelationIdFilterTest {
     private final CorrelationIdFilter filter = new CorrelationIdFilter();
 
     @Test
-    void creaUnIdSiLaPeticionNoTrae() throws Exception {
+    void createsAnIdWhenTheRequestDoesNotBringOne() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockFilterChain chain = new MockFilterChain();
@@ -21,12 +21,12 @@ class CorrelationIdFilterTest {
 
         String id = response.getHeader(CorrelationIdFilter.HEADER);
         assertThat(id).isNotBlank();
-        //El servicio de atrás recibe el mismo id
+        // The downstream service receives the same id
         assertThat(((jakarta.servlet.http.HttpServletRequest) chain.getRequest()).getHeader(CorrelationIdFilter.HEADER)).isEqualTo(id);
     }
 
     @Test
-    void respetaElIdQueTraeLaPeticion() throws Exception {
+    void respectsTheIdTheRequestBrings() throws Exception {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(CorrelationIdFilter.HEADER, "abc-123");
         MockHttpServletResponse response = new MockHttpServletResponse();
