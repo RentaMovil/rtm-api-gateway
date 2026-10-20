@@ -23,9 +23,9 @@ class JwtAuthenticationFilterTest {
     private final JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtVerifier);
 
     @Test
-    void tokenValidoAgregaXUserIdYXUserRole() throws Exception {
-        when(jwtVerifier.verify("bueno")).thenReturn(new JWTClaimsSet.Builder().subject("42").claim("role", "CLIENT").build());
-        MockHttpServletRequest request = request("/vehicles", "Bearer bueno");
+    void validTokenAddsXUserIdAndXUserRole() throws Exception {
+        when(jwtVerifier.verify("good")).thenReturn(new JWTClaimsSet.Builder().subject("42").claim("role", "CLIENT").build());
+        MockHttpServletRequest request = request("/vehicles", "Bearer good");
         MockFilterChain chain = new MockFilterChain();
 
         filter.doFilter(request, new MockHttpServletResponse(), chain);
@@ -36,19 +36,19 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    void tokenInvalidoDa401YNoReenvia() throws Exception {
-        when(jwtVerifier.verify("malo")).thenThrow(new JwtVerifier.InvalidTokenException());
+    void invalidTokenReturns401AndDoesNotForward() throws Exception {
+        when(jwtVerifier.verify("bad")).thenThrow(new JwtVerifier.InvalidTokenException());
         MockHttpServletResponse response = new MockHttpServletResponse();
         MockFilterChain chain = new MockFilterChain();
 
-        filter.doFilter(request("/users/me", "Bearer malo"), response, chain);
+        filter.doFilter(request("/users/me", "Bearer bad"), response, chain);
 
         assertThat(response.getStatus()).isEqualTo(401);
         assertThat(chain.getRequest()).isNull();
     }
 
     @Test
-    void borraLosXUserQueVienenDeAfuera() throws Exception {
+    void stripsXUserHeadersComingFromOutside() throws Exception {
         MockHttpServletRequest request = request("/vehicles", null);
         request.addHeader("X-User-Id", "1");
         request.addHeader("X-User-Role", "SUPER_ADMIN");
@@ -62,11 +62,11 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
-    void enRutasPublicasNoVerificaElToken() throws Exception {
+    void publicRoutesDoNotVerifyTheToken() throws Exception {
         MockFilterChain chain = new MockFilterChain();
 
-        //El frontend manda el token vencido cuando pide /auth/refresh: no se debe rechazar
-        filter.doFilter(request("/auth/refresh", "Bearer vencido"), new MockHttpServletResponse(), chain);
+        // The frontend sends the expired token when it requests /auth/refresh: it must not be rejected
+        filter.doFilter(request("/auth/refresh", "Bearer expired"), new MockHttpServletResponse(), chain);
 
         assertThat(chain.getRequest()).isNotNull();
         verify(jwtVerifier, never()).verify(any());
