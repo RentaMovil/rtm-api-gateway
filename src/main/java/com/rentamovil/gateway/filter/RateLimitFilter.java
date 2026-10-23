@@ -63,7 +63,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        //La IP es la de quien se conecta. No se usa X-Forwarded-For: lo puede inventar el cliente.
+        // getRemoteAddr() ya refleja el cliente real detrás de nginx: server.forward-headers-strategy=
+        // framework (application.properties) reescribe la petición usando X-Forwarded-For antes de que
+        // este filtro corra. Confiable porque nginx es el único punto de entrada (el puerto del gateway
+        // no está publicado a internet, ver docker-compose.yml): nadie externo puede llegar directo y
+        // falsificar ese header saltándose a nginx.
         String ip = request.getRemoteAddr();
         RateLimiter.Result result;
         int limit;
