@@ -44,7 +44,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/auth/login",
             "/auth/register",
             "/auth/refresh",
-            "/auth/jwks",
             "/auth/password/**",
             "/auth/email/**");
 
@@ -77,9 +76,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             request.setAttribute(USER_ID_ATTRIBUTE, claims.getSubject());
         } catch (JwtVerifier.InvalidTokenException | java.text.ParseException e) {
             writeError(response, HttpStatus.UNAUTHORIZED, "INVALID_TOKEN", "Token inválido o vencido");
-            return;
-        } catch (JwtVerifier.KeysUnavailableException e) {
-            writeError(response, HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE", "No se pudo verificar el token. Intenta más tarde");
             return;
         }
 
